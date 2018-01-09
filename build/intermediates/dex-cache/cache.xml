@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="F:\Prog Libgdx\Bomber Fight\core\build\libs\core-1.0.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.2"
+        sha1="6e559397eeac4ee36786bc83014aa9e6dea49e38">
+        <dex dex="F:\Prog Libgdx\Bomber Fight\android\build\intermediates\pre-dexed\debug\core-1.0_8e860303e3283611ca174fa2fca7114ab1353664.jar" />
+    </item>
+
+</items>
