@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.gagus.bomberfight.Screens.MainMenuScreen;
@@ -46,5 +47,9 @@ public class BomberFight extends Game {
 	@Override
 	public void dispose () {
 		batch.dispose();
+	}
+
+	public static Vector2 getSquareByPosition(Vector2 position){
+		return new Vector2((int)position.x/BomberFight.SQUARESIZE,(int)position.y/BomberFight.SQUARESIZE);
 	}
 }

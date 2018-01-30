@@ -10,19 +10,25 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.gagus.bomberfight.Actors.Bomb;
 import com.gagus.bomberfight.Actors.Bonus;
+import com.gagus.bomberfight.Actors.BreakableWall;
 import com.gagus.bomberfight.Actors.CountdownStartGame;
 import com.gagus.bomberfight.Actors.GameTimer;
 import com.gagus.bomberfight.Actors.Player;
+import com.gagus.bomberfight.Actors.UnbreakableWall;
 import com.gagus.bomberfight.BomberFight;
 import com.gagus.bomberfight.Actors.MapManager;
 import com.gagus.bomberfight.Interfaces.CollisionGetter;
 import com.gagus.bomberfight.Interfaces.PlayerDieListener;
 import com.gagus.bomberfight.Interfaces.GameTimerListener;
+import com.sun.org.apache.regexp.internal.RE;
+
+import org.w3c.dom.css.Rect;
 
 /**
  * Created by Gaetan on 24/12/2017.
@@ -38,7 +44,6 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 
 	int gameState;
 
-	MapManager mapManager;
 	Stage stage;
 	Stage playStage;
 	BomberFight game;
@@ -51,11 +56,22 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 	boolean countdownFinished;
 	CountdownStartGame countdownStartGame;
 
+	Image backgroundActor;
+
 	// pause/play items
 	ImageButton pauseButtonActor;
 	ImageButton playButtonActor;
 
 	GameTimer gameTimer;
+
+	Array<Rectangle> bombsRect = new Array<Rectangle>();
+	Array<Rectangle> explosionsRect = new Array<Rectangle>();
+	Array<Bonus> bonuses = new Array<Bonus>();
+	Array<Rectangle> allwallsRect = new Array<Rectangle>();
+	Array<Rectangle> unbreakableWallsRect = new Array<Rectangle>();
+	Array<Rectangle> breakableWallsRect = new Array<Rectangle>();
+	Array<BreakableWall> breakablesWalls = new Array<BreakableWall>();
+	Array<UnbreakableWall> unbreakablesWalls = new Array<UnbreakableWall>();
 
 
 
@@ -119,20 +135,25 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 		gameTimer = new GameTimer(this);
 		stage.addActor(gameTimer);
 
+		//background
+		TextureRegion backgroundImage = new TextureRegion(new Texture(Gdx.files.internal("images/backgrounds/herbe.png")));
+		backgroundActor = new Image(backgroundImage);
+		backgroundActor.setPosition(BomberFight.GameArea.x,0);
+
+
 		//create actors
-		mapManager = new MapManager(fileName,stage,this);
-		playerOne = new Player(new Vector2(1,9),names[0],1,stage,mapManager,this,this);
-		playerTwo = new Player(new Vector2(13,1),names[1],2,stage,mapManager,this,this);
+		playerOne = new Player(new Vector2(1,9),names[0],1,stage,this,this);
+		playerTwo = new Player(new Vector2(13,1),names[1],2,stage,this,this);
 		countdownStartGame = new CountdownStartGame();
 
 
 		// Add actors to stage
-		stage.addActor(mapManager);
+		stage.addActor(backgroundActor);
 		stage.addActor(pauseButtonActor);
 		stage.addActor(playerOne);
 		stage.addActor(playerTwo);
 		//set z indez to actors
-		mapManager.setZIndex(1);
+		backgroundActor.setZIndex(1);
 		pauseButtonActor.setZIndex(2);
 		gameTimer.setZIndex(2);
 		playerOne.setZIndex(3);
@@ -142,6 +163,12 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 		playerTwo.setButtons();
 
 		Gdx.input.setInputProcessor(playStage);
+
+		//mapmanager
+		MapManager mapManager = new MapManager(fileName,stage);
+
+		actUnbreakablesWalls();
+		actUnbreakablesWallsRect();
 	}
 
 	@Override
@@ -164,6 +191,11 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 				}
 				break;
 			case GAME_RUNNING:
+				actBombsRect();
+				actBonuses();
+				actExplosionsRect();
+				actBreakablesWalls();
+				actBreakablesWallsRect();
 				stage.act(delta);
 				stage.draw();
 				break;
@@ -225,18 +257,17 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 		gameState = GAME_OVER;
 	}
 
-	public Array<Rectangle> getBombsRect(){
-		Array<Rectangle> bombsRect = new Array<Rectangle>();
+	public void actBombsRect(){
+		bombsRect = new Array<Rectangle>();
 		for(Actor actor : stage.getActors()){
 			if(actor.getClass() == Bomb.class){
 				bombsRect.add(((Bomb)actor).getRectangle());
 			}
 		}
-		return bombsRect;
 	}
 
-	public Array<Rectangle> getExplosionsRect(){
-		Array<Rectangle> explosionsRect = new Array<Rectangle>();
+	public void actExplosionsRect(){
+		explosionsRect = new Array<Rectangle>();
 		for(Actor actor : stage.getActors()){
 			if(actor.getClass() == Bomb.class){
 				for(Rectangle rect : ((Bomb)actor).getExplosionRect()){
@@ -244,18 +275,16 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 				}
 			}
 		}
-		return explosionsRect;
 	}
 
-	@Override
-	public Array<Bonus> getBonuses() {
-		Array<Bonus> bonuses = new Array<Bonus>();
+
+	public void actBonuses() {
+		bonuses = new Array<Bonus>();
 		for(Actor actor : stage.getActors()){
 			if(actor.getClass() == Bonus.class){
 					bonuses.add((Bonus)actor);
 				}
 			}
-		return bonuses;
 	}
 
 	public Array<Bomb> getBombs(){
@@ -311,5 +340,87 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 	@Override
 	public void OnGameTimerFinished() {
 		gameState = GAME_OVER;
+	}
+
+	public Array<Rectangle> getBombsRect(){
+		return bombsRect;
+	}
+
+	public Array<Rectangle> getExplosionsRect(){
+		return explosionsRect;
+	}
+
+	public Array<Bonus> getBonuses(){
+		return bonuses;
+	}
+
+	public void destroyBlock(Vector2 squarePosition,CollisionGetter collisionGetter)
+	{
+		int bonusRandom = (int)(Math.random()*4);
+		Gdx.app.log("bonusRandom",String.valueOf(bonusRandom));
+		if(bonusRandom == 0 || bonusRandom == 1 || bonusRandom == 3) {
+			Bonus up = new Bonus(bonusRandom, squarePosition, collisionGetter);
+			stage.addActor(up);
+			up.setZIndex(2);
+		}
+	}
+
+	public Array<Rectangle> getAllWallsRect() {
+		Array<Rectangle> tab = new Array<Rectangle>();
+		tab.addAll(unbreakableWallsRect);
+		tab.addAll(breakableWallsRect);
+		return tab;
+	}
+
+	public Array<BreakableWall> getBreakablesWalls() {
+		return breakablesWalls;
+	}
+
+	public void actBreakablesWalls(){
+		breakablesWalls = new Array<BreakableWall>();
+		for(Actor actor : stage.getActors()){
+			if(actor.getClass() == BreakableWall.class){
+				breakablesWalls.add(((BreakableWall)actor));
+			}
+		}
+	}
+
+	public Array<UnbreakableWall> getUnbreakablesWalls() {
+		return unbreakablesWalls;
+	}
+
+	public void actUnbreakablesWalls(){
+		unbreakablesWalls = new Array<UnbreakableWall>();
+		for(Actor actor : stage.getActors()){
+			if(actor.getClass() == UnbreakableWall.class){
+				unbreakablesWalls.add(((UnbreakableWall)actor));
+			}
+		}
+	}
+
+	public void actUnbreakablesWallsRect(){
+		unbreakableWallsRect = new Array<Rectangle>();
+		for(Actor actor : stage.getActors()){
+			if(actor.getClass() == UnbreakableWall.class){
+				unbreakableWallsRect.add(((UnbreakableWall)actor).getRect());
+			}
+		}
+	}
+
+	public void actBreakablesWallsRect(){
+		breakableWallsRect = new Array<Rectangle>();
+		for(Actor actor : stage.getActors()){
+			if(actor.getClass() == BreakableWall.class){
+				breakableWallsRect.add(((BreakableWall)actor).getRect());
+			}
+		}
+	}
+
+	public Array<Rectangle> getUnbreakablesWallsRect(){
+		return unbreakableWallsRect;
+	}
+
+	public Array<Rectangle> getBreakablesWallsRect(){
+		return breakableWallsRect;
 	}
 }

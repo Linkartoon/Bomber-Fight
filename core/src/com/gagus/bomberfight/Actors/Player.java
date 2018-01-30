@@ -77,7 +77,7 @@ public class Player extends Actor {
 
 	public Player(){}
 
-	public Player(Vector2 positionSquare, String name, final int playerCount, Stage stage, MapManager mapManager, PlayerDieListener playerDieListener,CollisionGetter collisionGetter) {
+	public Player(Vector2 positionSquare, String name, final int playerCount, Stage stage, PlayerDieListener playerDieListener,CollisionGetter collisionGetter) {
 		// textures init
 		downFrames = new TextureRegion[framesCount];
 		upFrames = new TextureRegion[framesCount];
@@ -228,11 +228,7 @@ public class Player extends Actor {
 	}
 
 	private Vector2 getCenterSquare(){
-		return mapManager.getSquareByPosition(new Vector2(getCenter().x,getCenter().y));
-	}
-
-	public float[][] getSquaresPosition(){
-		return new float[][]{ {playerRect.x/BomberFight.SQUARESIZE, (playerRect.y+playerRect.width)/BomberFight.SQUARESIZE} , { (playerRect.x+playerRect.width)/BomberFight.SQUARESIZE, playerRect.y/BomberFight.SQUARESIZE} };
+		return BomberFight.getSquareByPosition(new Vector2(getCenter().x,getCenter().y));
 	}
 
 	public Array<Bomb> getBombsPlayer(){
@@ -252,7 +248,7 @@ public class Player extends Actor {
 	private void move(float delta){
 		//get the direction of the joystick (4 axes : up, down, left, right)
 		Vector2 direction = new Vector2(0,0);
-		Array<Rectangle> walls = mapManager.getWalls();
+		Array<Rectangle> walls = collisionGetter.getAllWallsRect();
 		Array<Rectangle> bombs = collisionGetter.getBombsRect();
 		Vector2 newPlayerPosition;
 		Rectangle newPlayerRect;

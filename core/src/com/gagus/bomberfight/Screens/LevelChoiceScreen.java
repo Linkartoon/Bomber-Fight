@@ -68,8 +68,8 @@ public class LevelChoiceScreen implements Screen {
 			@Override
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 				Gdx.app.log("input","touch up on level one button");
-				game.setScreen(new NameChoiceScreen(game,"map1.txt"));
-				//game.setScreen(new GameScreen(game,"map1.txt",new String[]{"dfzefer","frefer"}));
+				//game.setScreen(new NameChoiceScreen(game,"map1.txt"));
+				game.setScreen(new GameScreen(game,"map1.txt",new String[]{"dfzefer","frefer"}));
 			}
 		});
 

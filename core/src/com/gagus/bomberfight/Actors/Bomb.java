@@ -10,6 +10,8 @@ import com.badlogic.gdx.utils.Array;
 import com.gagus.bomberfight.BomberFight;
 import com.gagus.bomberfight.Interfaces.CollisionGetter;
 
+import org.w3c.dom.css.Rect;
+
 /**
  * Created by Gaetan on 25/12/2017.
  */
@@ -70,47 +72,144 @@ public class Bomb extends Actor {
 	}
 
 	public void explode(){
-		char[][] mapStructure = mapManager.getMapChar();
+		Array<BreakableWall> breakablesWalls = collisionGetter.getBreakablesWalls();
+		Array<UnbreakableWall> unbreakablesWalls = collisionGetter.getUnbreakablesWalls();
+
+		Array<BreakableWall> newBreakablesWalls = new Array<BreakableWall>();
+		Array<UnbreakableWall> newUnbreakablesWalls = new Array<UnbreakableWall>();
+
+		for(BreakableWall wall : breakablesWalls)
+			if(wall.getSquarePosition().x < squarePosition.x+explosionSize && wall.getSquarePosition().x > squarePosition.x-explosionSize || wall.getSquarePosition().y < squarePosition.y+explosionSize && wall.getSquarePosition().y > squarePosition.y-explosionSize)
+				newBreakablesWalls.add(wall);
+
+		for(UnbreakableWall wall : unbreakablesWalls)
+			if(wall.getSquarePosition().x < squarePosition.x+explosionSize && wall.getSquarePosition().x > squarePosition.x-explosionSize || wall.getSquarePosition().y < squarePosition.y+explosionSize && wall.getSquarePosition().y > squarePosition.y-explosionSize)
+				newUnbreakablesWalls.add(wall);
 		//center bomb
 		explosionsSquare.add(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));
+
 		// range up
 		for(int i=1;i<explosionSize;i++){
-			if(mapStructure[(int)squarePosition.y+i][(int)squarePosition.x] == 'm') break;
-			else if(mapStructure[(int)squarePosition.y+i][(int)squarePosition.x] == 'k'){
-				mapManager.destroyBlock(new Vector2(squarePosition.x,squarePosition.y+i));
+
+			BreakableWall bwall = null;
+			boolean isUnbreakable = false;
+			boolean isBreakable = false;
+			for(UnbreakableWall wall : newUnbreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y+i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE)))
+					isUnbreakable = true;
+			for(BreakableWall wall : newBreakablesWalls)
+			if(wall.getRect().overlaps(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y+i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE))){
+				isBreakable = true;
+				bwall = wall;
+			}
+			if(isUnbreakable) break;
+			else if(isBreakable) {
+				collisionGetter.destroyBlock(new Vector2(squarePosition.x,squarePosition.y+i),collisionGetter);
+				bwall.destroy();
+				Gdx.app.log("destroy","up");
 				break;
 			}
 			else explosionsSquare.add(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y+i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));
+
+			/*if(mapStructure[(int)squarePosition.y+i][(int)squarePosition.x] == 'm') break;
+			else if(mapStructure[(int)squarePosition.y+i][(int)squarePosition.x] == 'k'){
+				collisionGetter.destroyBlock(new Vector2(squarePosition.x,squarePosition.y+i),collisionGetter);
+				break;
+			}
+			else explosionsSquare.add(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y+i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));*/
 		}
 
 		// range down
 		for(int i=1;i<explosionSize;i++){
-			if(mapStructure[(int)squarePosition.y-i][(int)squarePosition.x] == 'm') break;
-			else if(mapStructure[(int)squarePosition.y-i][(int)squarePosition.x] == 'k'){
-				mapManager.destroyBlock(new Vector2(squarePosition.x,squarePosition.y-i));
+
+			BreakableWall bwall = null;
+			boolean isUnbreakable = false;
+			boolean isBreakable = false;
+			for(UnbreakableWall wall : newUnbreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y-i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE)))
+					isUnbreakable = true;
+			for(BreakableWall wall : newBreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y-i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE))){
+					isBreakable = true;
+					bwall = wall;
+				}
+			if(isUnbreakable) break;
+			else if(isBreakable) {
+				collisionGetter.destroyBlock(new Vector2(squarePosition.x,squarePosition.y-i),collisionGetter);
+				bwall.destroy();
+				Gdx.app.log("destroy","down");
 				break;
 			}
 			else explosionsSquare.add(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y-i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));
+
+			/*if(mapStructure[(int)squarePosition.y-i][(int)squarePosition.x] == 'm') break;
+			else if(mapStructure[(int)squarePosition.y-i][(int)squarePosition.x] == 'k'){
+				collisionGetter.destroyBlock(new Vector2(squarePosition.x,squarePosition.y-i),collisionGetter);
+				break;
+			}
+			else explosionsSquare.add(new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,(squarePosition.y-i)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));*/
 		}
 
 		// range right
 		for(int i=1;i<explosionSize;i++){
-			if(mapStructure[(int)squarePosition.y][(int)squarePosition.x+i] == 'm') break;
-			else if(mapStructure[(int)squarePosition.y][(int)squarePosition.x+i] == 'k'){
-				mapManager.destroyBlock(new Vector2(squarePosition.x+i,squarePosition.y));
+
+			BreakableWall bwall = null;
+			boolean isUnbreakable = false;
+			boolean isBreakable = false;
+			for(UnbreakableWall wall : newUnbreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle((squarePosition.x+i)*BomberFight.SQUARESIZE,(squarePosition.y)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE)))
+					isUnbreakable = true;
+			for(BreakableWall wall : newBreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle((squarePosition.x+i)*BomberFight.SQUARESIZE,(squarePosition.y)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE))){
+					isBreakable = true;
+					bwall = wall;
+				}
+			if(isUnbreakable) break;
+			else if(isBreakable) {
+				collisionGetter.destroyBlock(new Vector2((squarePosition.x+i),squarePosition.y),collisionGetter);
+				bwall.destroy();
+				Gdx.app.log("destroy","right");
 				break;
 			}
 			else explosionsSquare.add(new Rectangle((squarePosition.x+i)*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));
+
+			/*if(mapStructure[(int)squarePosition.y][(int)squarePosition.x+i] == 'm') break;
+			else if(mapStructure[(int)squarePosition.y][(int)squarePosition.x+i] == 'k'){
+				collisionGetter.destroyBlock(new Vector2(squarePosition.x+i,squarePosition.y),collisionGetter);
+				break;
+			}
+			else explosionsSquare.add(new Rectangle((squarePosition.x+i)*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));*/
 		}
 
-		// range up
+		// range left
 		for(int i=1;i<explosionSize;i++){
-			if(mapStructure[(int)squarePosition.y][(int)squarePosition.x-i] == 'm') break;
-			else if(mapStructure[(int)squarePosition.y][(int)squarePosition.x-i] == 'k'){
-				mapManager.destroyBlock(new Vector2(squarePosition.x-i,squarePosition.y));
+
+			BreakableWall bwall = null;
+			boolean isUnbreakable = false;
+			boolean isBreakable = false;
+			for(UnbreakableWall wall : newUnbreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle((squarePosition.x-i)*BomberFight.SQUARESIZE,(squarePosition.y)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE)))
+					isUnbreakable = true;
+			for(BreakableWall wall : newBreakablesWalls)
+				if(wall.getRect().overlaps(new Rectangle((squarePosition.x-i)*BomberFight.SQUARESIZE,(squarePosition.y)*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE))){
+					isBreakable = true;
+					bwall = wall;
+				}
+			if(isUnbreakable) break;
+			else if(isBreakable) {
+				collisionGetter.destroyBlock(new Vector2((squarePosition.x-i),squarePosition.y),collisionGetter);
+				bwall.destroy();
+				Gdx.app.log("destroy","left");
 				break;
 			}
 			else explosionsSquare.add(new Rectangle((squarePosition.x-i)*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));
+
+			/*if(mapStructure[(int)squarePosition.y][(int)squarePosition.x-i] == 'm') break;
+			else if(mapStructure[(int)squarePosition.y][(int)squarePosition.x-i] == 'k'){
+				collisionGetter.destroyBlock(new Vector2(squarePosition.x-i,squarePosition.y),collisionGetter);
+				break;
+			}
+			else explosionsSquare.add(new Rectangle((squarePosition.x-i)*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE));*/
 		}
 
 		for(Rectangle explosion : getExplosionRect()) {
