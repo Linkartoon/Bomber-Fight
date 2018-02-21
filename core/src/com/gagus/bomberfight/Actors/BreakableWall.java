@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.gagus.bomberfight.BomberFight;
+import com.gagus.bomberfight.Interfaces.DataSender;
 
 /**
  * Created by Gaetan on 11/01/2018.
@@ -17,11 +18,21 @@ public class BreakableWall extends Actor {
 	Texture breakableBlockImage;
 	float marginAera;
 	Vector2 squarePosition;
+	DataSender dataSender;
 
 	public BreakableWall(Vector2 position) {
+		dataSender = null;
 		breakableBlockImage = new Texture(Gdx.files.internal("images/walls/kure.png"));
 		marginAera = BomberFight.GameArea.x;
 		wallRect = new Rectangle(position.x*BomberFight.SQUARESIZE,position.y*BomberFight.SQUARESIZE,breakableBlockImage.getWidth(),breakableBlockImage.getHeight());
+		squarePosition = position;
+	}
+
+	public BreakableWall(Vector2 position, DataSender dataSender) {
+		this.dataSender = dataSender;
+		breakableBlockImage = new Texture(Gdx.files.internal("images/walls/kure.png"));
+		marginAera = BomberFight.GameArea.x;
+		wallRect = new Rectangle(position.x*BomberFight.SQUARESIZE,position.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE);
 		squarePosition = position;
 	}
 
@@ -39,5 +50,8 @@ public class BreakableWall extends Actor {
 		return squarePosition;
 	}
 
-	public void destroy(){this.remove();}
+	public void destroy(){
+		if(dataSender != null) dataSender.sendWallDestroyed(squarePosition);
+		this.remove();
+	}
 }

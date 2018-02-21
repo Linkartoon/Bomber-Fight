@@ -178,8 +178,8 @@ public class Player extends Actor {
 	public void act(float delta) {
 		if(isAlive){
 			collideWithExplosions();
-			move(delta);
 			collideWithBonus();
+			move(delta);
 		}
 		else{
 			playerDieListener.onPlayerDie();
@@ -215,7 +215,7 @@ public class Player extends Actor {
 		}
 
 		if(getCountBombsAct() < bombsCount && !collideWithBomb){
-			Bomb bomb = new Bomb(playerCount,getCenterSquare(),explosionSizeBomb,mapManager,collisionGetter);
+			Bomb bomb = new Bomb(playerCount,getCenterSquare(),explosionSizeBomb,collisionGetter);
 			stage.addActor(bomb);
 			bomb.setZIndex(2);
 		}
@@ -247,7 +247,6 @@ public class Player extends Actor {
 
 	private void move(float delta){
 		//get the direction of the joystick (4 axes : up, down, left, right)
-		Vector2 direction = new Vector2(0,0);
 		Array<Rectangle> walls = collisionGetter.getAllWallsRect();
 		Array<Rectangle> bombs = collisionGetter.getBombsRect();
 		Vector2 newPlayerPosition;
@@ -258,6 +257,7 @@ public class Player extends Actor {
 		Array<Rectangle> wallsCollided = new Array<Rectangle>();
 		Rectangle bombCollided = new Rectangle();
 		Rectangle lastWallCollided;
+		Vector2 direction = new Vector2(0,0);
 
 		if(joystick.isTouched())
 		{

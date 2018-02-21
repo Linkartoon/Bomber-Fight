@@ -26,9 +26,7 @@ import com.gagus.bomberfight.Actors.MapManager;
 import com.gagus.bomberfight.Interfaces.CollisionGetter;
 import com.gagus.bomberfight.Interfaces.PlayerDieListener;
 import com.gagus.bomberfight.Interfaces.GameTimerListener;
-import com.sun.org.apache.regexp.internal.RE;
 
-import org.w3c.dom.css.Rect;
 
 /**
  * Created by Gaetan on 24/12/2017.
@@ -301,7 +299,7 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 		timerEnd+=delta;
 		if(timerEnd >= 1) {
 			results();
-			game.setScreen(new EndGameScreen(game,winner,equality));
+			game.setScreen(new EndGameScreen(game,winner.getName(),equality));
 		}
 	}
 
@@ -422,5 +420,17 @@ public class GameScreen implements Screen, PlayerDieListener, CollisionGetter, G
 
 	public Array<Rectangle> getBreakablesWallsRect(){
 		return breakableWallsRect;
+	}
+
+	public Array<Bomb> getBombsPlayer(int playerIndex){
+		Array<Bomb> bombsPlayer = new Array<Bomb>();
+		for(Actor actor : stage.getActors()){
+			if(actor.getClass() == Bomb.class){
+				Bomb bomb = (Bomb) actor;
+				if(bomb.playerCount == playerIndex)
+					bombsPlayer.add(bomb);
+			}
+		}
+		return bombsPlayer;
 	}
 }

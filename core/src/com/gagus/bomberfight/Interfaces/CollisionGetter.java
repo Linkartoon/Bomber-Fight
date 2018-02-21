@@ -23,4 +23,5 @@ public interface CollisionGetter {
 	public Array<UnbreakableWall> getUnbreakablesWalls();
 	public Array<Rectangle> getUnbreakablesWallsRect();
 	public Array<Rectangle> getBreakablesWallsRect();
+	public Array<Bomb> getBombsPlayer(int playerIndex);
 }

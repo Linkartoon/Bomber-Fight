@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.gagus.bomberfight.BomberFight;
 import com.gagus.bomberfight.Interfaces.CollisionGetter;
+import com.gagus.bomberfight.Interfaces.DataSender;
 
 /**
  * Created by Gaetan on 24/12/2017.
@@ -21,8 +22,21 @@ public class MapManager extends Actor{
 	FileHandle mapFile;
 	String mapString;
 	Stage stage;
+	DataSender dataSender;
 
 	public MapManager(String fileName, Stage stage) {
+		this.dataSender = null;
+		this.stage = stage;
+		mapFile = Gdx.files.internal("maps/"+fileName);
+		mapString = mapFile.readString();
+		Gdx.app.log("map in string",mapString);
+
+		generateMap();
+		createWalls();
+	}
+
+	public MapManager(String fileName, Stage stage, DataSender dataSender) {
+		this.dataSender = dataSender;
 		this.stage = stage;
 		mapFile = Gdx.files.internal("maps/"+fileName);
 		mapString = mapFile.readString();
@@ -62,7 +76,9 @@ public class MapManager extends Actor{
 			for(int x=0;x<mapTable[y].length;x++)
 			{
 				 if(mapTable[y][x] == 'k') {
-				 	BreakableWall wall = new BreakableWall(new Vector2(x,y));
+					 BreakableWall wall;
+				 	if(dataSender != null) wall = new BreakableWall(new Vector2(x,y), dataSender);
+				 	else wall = new BreakableWall(new Vector2(x,y));
 				 	stage.addActor(wall);
 				 	wall.setZIndex(1);
 				 }

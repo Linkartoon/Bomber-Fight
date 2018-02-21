@@ -21,7 +21,7 @@ public class UnbreakableWall extends Actor {
 	public UnbreakableWall(Vector2 position) {
 		unbreakableBlockImage = new Texture(Gdx.files.internal("images/walls/mur1.png"));
 		marginAera = BomberFight.GameArea.x;
-		wallRect = new Rectangle(position.x*BomberFight.SQUARESIZE,position.y*BomberFight.SQUARESIZE,unbreakableBlockImage.getWidth(),unbreakableBlockImage.getHeight());
+		wallRect = new Rectangle(position.x*BomberFight.SQUARESIZE,position.y*BomberFight.SQUARESIZE,BomberFight.SQUARESIZE,BomberFight.SQUARESIZE);
 		squarePosition = position;
 	}
 

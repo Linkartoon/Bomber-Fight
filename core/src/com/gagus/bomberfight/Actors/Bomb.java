@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 import com.gagus.bomberfight.BomberFight;
 import com.gagus.bomberfight.Interfaces.CollisionGetter;
+import com.gagus.bomberfight.Interfaces.DataSender;
 
 import org.w3c.dom.css.Rect;
 
@@ -17,7 +18,7 @@ import org.w3c.dom.css.Rect;
  */
 
 public class Bomb extends Actor {
-	int playerCount;
+	public int playerCount;
 	Vector2 squarePosition;
 	double time;
 	int state;
@@ -27,25 +28,44 @@ public class Bomb extends Actor {
 	Texture bombImage;
 	Texture explosionImage;
 	float marginArea;
-	MapManager mapManager;
 	CollisionGetter collisionGetter;
+	DataSender dataSender;
 
-	public Bomb(int playerCount, Vector2 squarePosition, int explosionSize, MapManager mapManager, CollisionGetter collisionGetter) {
+	public Bomb(int playerCount, Vector2 squarePosition, int explosionSize, CollisionGetter collisionGetter) {
 		this.marginArea = BomberFight.GameArea.x;
 		this.bombImage = new Texture(Gdx.files.internal("images/bomb/bombe.png"));
 		this.bombRect = new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,bombImage.getWidth(),bombImage.getHeight());
+		Gdx.app.log("bomb size",this.bombImage.toString());
+		Gdx.app.log("bomb",squarePosition.toString());
+		this.explosionImage = new Texture(Gdx.files.internal("images/bomb/explosion.png"));
+		setBounds(bombRect.x,bombRect.y,bombRect.width,bombRect.height);
 		this.playerCount = playerCount;
 		this.squarePosition = squarePosition;
 		this.explosionSize = explosionSize;
 		this.state = 0;
 		this.time = 0;
 		this.explosionsSquare = new Array<Rectangle>();
-		this.explosionImage = new Texture(Gdx.files.internal("images/bomb/explosion.png"));
-		this.mapManager = mapManager;
-		setBounds(bombRect.x,bombRect.y,bombRect.width,bombRect.height);
 		this.collisionGetter = collisionGetter;
-
+		this.dataSender = null;
 	}
+	public Bomb(int playerCount, Vector2 squarePosition, int explosionSize, CollisionGetter collisionGetter, DataSender dataSender) {
+		this.marginArea = BomberFight.GameArea.x;
+		this.bombImage = new Texture(Gdx.files.internal("images/bomb/bombe.png"));
+		this.bombRect = new Rectangle(squarePosition.x*BomberFight.SQUARESIZE,squarePosition.y*BomberFight.SQUARESIZE,bombImage.getWidth(),bombImage.getHeight());
+		Gdx.app.log("bomb size",this.bombImage.toString());
+		Gdx.app.log("bomb",squarePosition.toString());
+		this.explosionImage = new Texture(Gdx.files.internal("images/bomb/explosion.png"));
+		setBounds(bombRect.x,bombRect.y,bombRect.width,bombRect.height);
+		this.playerCount = playerCount;
+		this.squarePosition = squarePosition;
+		this.explosionSize = explosionSize;
+		this.state = 0;
+		this.time = 0;
+		this.explosionsSquare = new Array<Rectangle>();
+		this.collisionGetter = collisionGetter;
+		this.dataSender = dataSender;
+	}
+
 
 	@Override
 	public void draw(Batch batch, float parentAlpha) {
@@ -61,13 +81,30 @@ public class Bomb extends Actor {
 
 	@Override
 	public void act(float delta) {
-		time += delta;
-		if(state == 0 && time >= 3){
-			explode();
+		time += delta; // increment the time of the bomb
+		if(state == 0 && time >= 3){ // if the bomb is not exploded and have lived 3 seconds
+			//the bomb explode
+			//explode();
+			//if dataSender is not null, send explosions positions to players
+			state = 2;
 		}
-		else if(state == 2) explode();
-		else if(state == 1 && time >= 0.3){
-			clean();
+		if(state == 2) { // if the bomb is exploded by an other bomb
+			//the bomb explode
+			explode();
+			//if dataSender is not null, send explosions positions to players
+			if(dataSender != null){
+				Array<Vector2> explosionsSquaresPositions = new Array<Vector2>();
+				for(Rectangle rect : explosionsSquare){
+					Vector2 position = new Vector2();
+					position = rect.getPosition(position);
+					explosionsSquaresPositions.add(BomberFight.getSquareByPosition(position));
+				}
+				dataSender.sendBombExploded(squarePosition, explosionsSquaresPositions);
+				Gdx.app.log("server","explosion sended");
+			}
+		} else if(state == 1 && time >= 0.3){
+			//the bomb explosion is finish
+			clean(); // detroy the bomb
 		}
 	}
 

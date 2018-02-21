@@ -35,7 +35,7 @@ import java.util.Map;
 public class EndGameScreen implements Screen {
 	Stage stage;
 	BomberFight game;
-	Player winner;
+	String winner;
 	float marginAera;
 	ImageButton menuButtonActor;
 	ImageButton scoresButtonActor;
@@ -52,7 +52,7 @@ public class EndGameScreen implements Screen {
 	Label textEqualityActor;
 
 
-	public EndGameScreen(final BomberFight game, Player winner, boolean equality) {
+	public EndGameScreen(final BomberFight game, String winner, boolean equality) {
 		this.game = game;
 		this.winner = winner;
 		stage = new Stage(game.viewport,game.batch);
@@ -147,7 +147,7 @@ public class EndGameScreen implements Screen {
 		else {
 			saveScore();
 			textPlayerActor = new Label("Le joueur ", labelStyle);
-			textWinnerActor = new Label(winner.getName(), labelStyle);
+			textWinnerActor = new Label(winner, labelStyle);
 			textWinActor = new Label("a gagné", labelStyle);
 			//position
 			textWinActor.setPosition(250+marginAera,0);
@@ -214,15 +214,15 @@ public class EndGameScreen implements Screen {
 			e.printStackTrace();
 			Gdx.app.log("read file","fail");
 		}
-		if(scores.get(winner.getName()) != null){
-				int score = scores.get(winner.getName())+1;
+		if(scores.get(winner) != null){
+				int score = scores.get(winner)+1;
 				Gdx.app.log("new player score",String.valueOf(score));
-				scores.put(winner.getName(),score);
-				Gdx.app.log("save succes",winner.getName()+" "+scores.get(winner.getName()));
+				scores.put(winner,score);
+				Gdx.app.log("save succes",winner+" "+scores.get(winner));
 		}
 		else{
-			scores.put(winner.getName(),1);
-			Gdx.app.log("save succes",winner.getName()+" "+scores.get(winner.getName()));
+			scores.put(winner,1);
+			Gdx.app.log("save succes",winner+" "+scores.get(winner));
 		}
 
 		// rewrite file

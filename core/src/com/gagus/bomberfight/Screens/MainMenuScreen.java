@@ -4,13 +4,20 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.AlphaAction;
+import com.badlogic.gdx.scenes.scene2d.actions.MoveToAction;
+import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.gagus.bomberfight.BomberFight;
+
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.sequence;
 
 /**
  * Created by Gaetan on 24/12/2017.
@@ -75,7 +82,13 @@ public class MainMenuScreen implements Screen {
 			@Override
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 				Gdx.app.log("input","touch up on play button");
-				game.setScreen(new LevelChoiceScreen(game));
+				playButtonActor.addAction(sequence(Actions.fadeOut(0.5f),Actions.run(new Runnable() {
+					@Override
+					public void run() {
+						game.setScreen(new SelectionModeMenu(game));
+					}
+				})));
+				//game.setScreen(new SelectionModeMenu(game));
 			}
 		});
 
@@ -93,11 +106,18 @@ public class MainMenuScreen implements Screen {
 			}
 		});
 
+
 		// Add actor to stage
 		stage.addActor(backgroundActor);
 		stage.addActor(playButtonActor);
 		stage.addActor(scoresButtonActor);
 		stage.addActor(exitButtonActor);
+
+		//Add actions to actors
+		for(Actor actor : stage.getActors()){
+			actor.addAction(Actions.fadeOut(0f));
+			actor.addAction(Actions.fadeIn(0.5f));
+		}
 	}
 
 	@Override
